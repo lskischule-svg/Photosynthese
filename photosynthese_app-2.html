@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Photosynthese – Interaktive Lernapp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1a0e;
+    --bg2: #162214;
+    --bg3: #1e2e1a;
+    --surface: #243320;
+    --surface2: #2e3f28;
+    --border: #3a5032;
+    --text: #e8f0e2;
+    --text-dim: #8aab7e;
+    --text-muted: #5a7a52;
+    --gold: #f0c040;
+    --gold2: #d4a420;
+    --light-green: #7ecb52;
+    --accent-blue: #5bb8d4;
+    --accent-red: #e05050;
+    --green-glow: rgba(126,203,82,.15);
+    --gold-glow: rgba(240,192,64,.15);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.65;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: linear-gradient(160deg,#0d1c0b 0%,#1a2f14 60%,#0f2010 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 24px 20px;
+    position: relative; overflow: hidden;
+  }
+  header::before {
+    content:''; position:absolute; top:-40px; right:-40px;
+    width:220px; height:220px;
+    background: radial-gradient(circle, rgba(240,192,64,.18) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .header-eyebrow {
+    font-size:11px; font-weight:600; letter-spacing:3px;
+    text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;
+  }
+  header h1 { font-family:'Playfair Display',serif; font-size:clamp(26px,5vw,40px); font-weight:900; color:var(--text); line-height:1.15; }
+  header h1 span { color:var(--gold); }
+  .header-sub { margin-top:8px; font-size:14px; color:var(--text-dim); font-style:italic; }
+
+  /* ── TABS ── */
+  .tabs {
+    display:flex; background:var(--bg2); border-bottom:1px solid var(--border);
+    padding:0 16px; gap:4px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+  }
+  .tab-btn {
+    flex:1; min-width:160px; padding:16px 20px; background:transparent;
+    border:none; border-bottom:3px solid transparent; color:var(--text-dim);
+    font-family:'Source Serif 4',serif; font-size:15px; font-weight:600;
+    cursor:pointer; transition:all .25s; white-space:nowrap;
+  }
+  .tab-btn.active { color:var(--gold); border-bottom-color:var(--gold); }
+  .tab-btn:not(.active):hover { color:var(--text); }
+
+  /* ── MAIN ── */
+  main { max-width:860px; margin:0 auto; padding:28px 20px 60px; }
+  .tab-panel { display:none; }
+  .tab-panel.active { display:block; animation:fadeIn .35s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── INTRO CARD ── */
+  .intro-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:22px 24px; margin-bottom:24px;
+    position:relative; overflow:hidden;
+  }
+  .intro-card::before {
+    content:''; position:absolute; top:0; left:0;
+    width:4px; height:100%; border-radius:4px 0 0 4px;
+  }
+  .intro-card.light::before { background:var(--gold); }
+  .intro-card.dark::before { background:var(--light-green); }
+  .intro-card h2 { font-family:'Playfair Display',serif; font-size:21px; margin-bottom:10px; }
+  .intro-card p { color:var(--text-dim); font-size:15.5px; }
+  .location-badge {
+    display:inline-block; background:var(--surface2); border:1px solid var(--border);
+    border-radius:6px; padding:4px 10px; font-size:12px; font-weight:600;
+    letter-spacing:1px; text-transform:uppercase; margin-bottom:10px;
+  }
+  .location-badge.light { color:var(--gold); }
+  .location-badge.dark { color:var(--light-green); }
+
+  /* ── DIAGRAM ── */
+  .section-title {
+    font-family:'Playfair Display',serif; font-size:17px; color:var(--text-dim);
+    margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border);
+  }
+  .diagram-wrap {
+    margin-bottom:28px; border-radius:var(--radius);
+    overflow:hidden; border:1px solid var(--border);
+  }
+  .diagram-wrap svg { display:block; width:100%; }
+
+  /* ── STEPS ── */
+  .steps-container { margin-bottom:28px; }
+  .step-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); margin-bottom:12px; overflow:hidden;
+    cursor:pointer; transition:border-color .2s, transform .2s;
+  }
+  .step-card:hover { border-color:var(--text-muted); transform:translateX(3px); }
+  .step-header { display:flex; align-items:center; padding:15px 18px; gap:14px; }
+  .step-number {
+    width:36px; height:36px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display',serif; font-size:16px; font-weight:700;
+    flex-shrink:0; border:2px solid;
+  }
+  .step-number.light { color:var(--gold); border-color:var(--gold2); background:rgba(240,192,64,.1); }
+  .step-number.dark  { color:var(--light-green); border-color:var(--light-green); background:rgba(126,203,82,.1); }
+  .step-title-wrap { flex:1; }
+  .step-title { font-weight:600; font-size:16px; color:var(--text); line-height:1.3; }
+  .step-subtitle { font-size:13px; color:var(--text-muted); margin-top:2px; }
+  .step-toggle { color:var(--text-muted); font-size:20px; transition:transform .25s; flex-shrink:0; }
+  .step-card.open .step-toggle { transform:rotate(90deg); }
+  .step-body {
+    display:none; padding:0 18px 16px 68px;
+    font-size:15px; color:var(--text-dim); line-height:1.7;
+    border-top:1px solid var(--border); padding-top:14px;
+  }
+  .step-card.open .step-body { display:block; animation:fadeIn .2s ease; }
+  .step-body .formula {
+    display:inline-block; background:var(--bg3); border:1px solid var(--border);
+    border-radius:8px; padding:8px 14px; font-size:15px; color:var(--text); margin:8px 0;
+  }
+  .step-body ul { padding-left:18px; margin-top:8px; }
+  .step-body li { margin-bottom:6px; }
+  .keyword { color:var(--gold); font-weight:600; }
+  .keyword.green { color:var(--light-green); }
+  .keyword.blue  { color:var(--accent-blue); }
+
+  /* step mini diagram */
+  .mini-diag { margin:14px 0 4px; border-radius:10px; overflow:hidden; border:1px solid var(--border); }
+  .mini-diag svg { display:block; width:100%; }
+
+  /* ── FLOW BOX ── */
+  .flow-box {
+    background:var(--bg3); border:1px solid var(--border);
+    border-radius:var(--radius); padding:18px 20px; margin-bottom:28px; font-size:14.5px;
+  }
+  .flow-box h3 { font-family:'Playfair Display',serif; font-size:15px; color:var(--text-dim); margin-bottom:12px; }
+  .flow-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .flow-item { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:5px 11px; font-size:13.5px; color:var(--text); }
+  .flow-item.in  { border-color:var(--accent-blue); color:var(--accent-blue); }
+  .flow-item.out { border-color:var(--light-green); color:var(--light-green); }
+  .flow-item.out.gold { border-color:var(--gold); color:var(--gold); }
+  .flow-arrow { color:var(--text-muted); font-size:18px; }
+
+  /* ── QUIZ ── */
+  .quiz-section { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:28px; }
+  .quiz-header { background:var(--surface2); padding:15px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  .quiz-header h3 { font-family:'Playfair Display',serif; font-size:18px; color:var(--text); }
+  .quiz-progress { font-size:13px; color:var(--text-muted); font-weight:600; }
+  .quiz-body { padding:22px 20px; }
+  .question-block { display:none; }
+  .question-block.active { display:block; animation:fadeIn .3s ease; }
+  .question-text { font-size:17px; font-weight:600; color:var(--text); margin-bottom:18px; line-height:1.5; }
+  .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  @media(max-width:520px){.options-grid{grid-template-columns:1fr;}}
+  .option-btn {
+    background:var(--bg3); border:1.5px solid var(--border); border-radius:10px;
+    padding:13px 15px; color:var(--text-dim); font-family:'Source Serif 4',serif;
+    font-size:15px; cursor:pointer; text-align:left; transition:all .2s;
+    line-height:1.4; min-height:52px;
+  }
+  .option-btn:hover:not(:disabled) { border-color:var(--text-muted); color:var(--text); background:var(--surface); }
+  .option-btn.correct { border-color:var(--light-green); color:var(--light-green); background:rgba(126,203,82,.12); }
+  .option-btn.wrong   { border-color:var(--accent-red);  color:var(--accent-red);  background:rgba(224,80,80,.10); }
+  .option-btn:disabled { cursor:default; }
+  .feedback-box {
+    border-radius:10px; padding:11px 15px; font-size:14.5px;
+    margin-bottom:14px; display:none; line-height:1.5;
+  }
+  .feedback-box.correct { background:rgba(126,203,82,.12); border:1px solid var(--light-green); color:var(--light-green); }
+  .feedback-box.wrong   { background:rgba(224,80,80,.10);  border:1px solid var(--accent-red);  color:#f09090; }
+  .feedback-box.show { display:block; animation:fadeIn .25s ease; }
+  .quiz-nav { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .btn { background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; padding:12px 22px; color:var(--text); font-family:'Source Serif 4',serif; font-size:15px; font-weight:600; cursor:pointer; transition:all .2s; }
+  .btn:hover { border-color:var(--gold); color:var(--gold); }
+  .btn.primary { background:var(--gold2); border-color:var(--gold); color:#111; }
+  .btn.primary:hover { background:var(--gold); }
+  .btn:disabled { opacity:.4; cursor:default; }
+  .progress-bar-wrap { height:3px; background:var(--bg3); border-radius:3px; margin-bottom:18px; overflow:hidden; }
+  .progress-bar-fill { height:100%; background:var(--gold); border-radius:3px; transition:width .3s ease; }
+  .progress-bar-fill.green { background:var(--light-green); }
+
+  /* ── RESULT ── */
+  .result-screen { display:none; text-align:center; padding:28px 16px; }
+  .result-screen.show { display:block; animation:fadeIn .4s ease; }
+  .result-emoji { font-size:54px; margin-bottom:14px; }
+  .result-score { font-family:'Playfair Display',serif; font-size:42px; font-weight:900; margin-bottom:6px; }
+  .result-label { font-size:15px; color:var(--text-dim); margin-bottom:22px; }
+  .result-message { background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:16px 20px; font-size:15px; color:var(--text-dim); text-align:left; margin-bottom:20px; line-height:1.7; }
+
+  /* ── DREHSCHEIBE HINT ── */
+  .drehscheibe-hint {
+    background:linear-gradient(135deg,var(--surface) 0%,var(--bg3) 100%);
+    border:1px solid var(--border); border-radius:var(--radius);
+    padding:20px 22px; margin-top:28px; position:relative; overflow:hidden;
+  }
+  .drehscheibe-hint::before { content:'⊙'; position:absolute; top:-10px; right:16px; font-size:80px; opacity:.06; line-height:1; }
+  .drehscheibe-hint h3 { font-family:'Playfair Display',serif; font-size:17px; color:var(--gold); margin-bottom:10px; }
+  .drehscheibe-hint ul { padding-left:18px; font-size:14.5px; color:var(--text-dim); line-height:1.85; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Biologie · Klasse 11 · Ökologie</div>
+  <h1>Photo<span>synthese</span></h1>
+  <p class="header-sub">Lernapp zu Licht- und Dunkelreaktion</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('licht',this)">☀ Lichtreaktion</button>
+  <button class="tab-btn" onclick="switchTab('calvin',this)">🌿 Calvin-Zyklus</button>
+</div>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  TAB 1: LICHTREAKTION                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-licht">
+
+  <div class="intro-card light">
+    <span class="location-badge light">Ort: Thylakoidmembran</span>
+    <h2>Lichtreaktion – Primärreaktion der Photosynthese</h2>
+    <p>Mithilfe von Lichtenergie wird Wasser gespalten und energiereiche Moleküle (ATP und NADPH+H⁺) gebildet. Diese liefert der Calvin-Zyklus benötigt. Sauerstoff (O₂) entsteht als Nebenprodukt.</p>
+  </div>
+
+  <!-- ── OVERVIEW: Z-SCHEMA ── -->
+  <p class="section-title">Übersicht: Nichtzykl. Elektronentransport (Z-Schema)</p>
+  <div class="diagram-wrap">
+    <svg viewBox="0 0 720 370" xmlns="http://www.w3.org/2000/svg">
+      <rect width="720" height="370" fill="#0f1a0e"/>
+
+      <!-- TITLE -->
+      <text x="360" y="20" text-anchor="middle" fill="#5a7a52" font-size="10" font-family="sans-serif" letter-spacing="2.5">ELEKTRONENTRANSPORT · LICHTREAKTION</text>
+
+      <!-- Y-AXIS -->
+      <line x1="72" y1="33" x2="72" y2="348" stroke="#3a5032" stroke-width="1.5"/>
+      <!-- Y-axis title, rotated -->
+      <text transform="translate(13,220) rotate(-90)" text-anchor="middle" fill="#5a7a52" font-size="10" font-family="sans-serif">Redoxpotential (V)</text>
+
+      <!-- GRIDLINES & LABELS (y = 40 + (V+1.2)*136.4) -->
+      <!-- -1.2V → y=40 -->
+      <line x1="70" y1="40" x2="698" y2="40" stroke="#1e2e1a" stroke-width="1"/>
+      <line x1="70" y1="40" x2="76" y2="40" stroke="#4a6a42" stroke-width="2"/>
+      <text x="64" y="44" text-anchor="end" fill="#5a7a52" font-size="10" font-family="sans-serif">−1,2</text>
+      <!-- -0.8V → y=95 -->
+      <line x1="70" y1="95" x2="698" y2="95" stroke="#1e2e1a" stroke-width="1"/>
+      <line x1="70" y1="95" x2="76" y2="95" stroke="#4a6a42" stroke-width="2"/>
+      <text x="64" y="99" text-anchor="end" fill="#5a7a52" font-size="10" font-family="sans-serif">−0,8</text>
+      <!-- -0.4V → y=149 -->
+      <line x1="70" y1="149" x2="698" y2="149" stroke="#1e2e1a" stroke-width="1"/>
+      <line x1="70" y1="149" x2="76" y2="149" stroke="#4a6a42" stroke-width="2"/>
+      <text x="64" y="153" text-anchor="end" fill="#5a7a52" font-size="10" font-family="sans-serif">−0,4</text>
+      <!-- 0.0V → y=204 -->
+      <line x1="70" y1="204" x2="698" y2="204" stroke="#2e4228" stroke-width="1.5"/>
+      <line x1="70" y1="204" x2="76" y2="204" stroke="#5a7a52" stroke-width="2.5"/>
+      <text x="64" y="208" text-anchor="end" fill="#8aab7e" font-size="10" font-family="sans-serif" font-weight="bold">0,0</text>
+      <!-- +0.4V → y=258 -->
+      <line x1="70" y1="258" x2="698" y2="258" stroke="#1e2e1a" stroke-width="1"/>
+      <line x1="70" y1="258" x2="76" y2="258" stroke="#4a6a42" stroke-width="2"/>
+      <text x="64" y="262" text-anchor="end" fill="#5a7a52" font-size="10" font-family="sans-serif">+0,4</text>
+      <!-- +0.8V → y=313 -->
+      <line x1="70" y1="313" x2="698" y2="313" stroke="#1e2e1a" stroke-width="1"/>
+      <line x1="70" y1="313" x2="76" y2="313" stroke="#4a6a42" stroke-width="2"/>
+      <text x="64" y="317" text-anchor="end" fill="#5a7a52" font-size="10" font-family="sans-serif">+0,8</text>
+
+      <!-- ── FOTOLYSE: H₂O → P680 ── -->
+      <!-- H₂O box at +0.8V (y=313) -->
+      <rect x="82" y="300" width="58" height="26" rx="6" fill="#142018" stroke="#5bb8d4" stroke-width="1.5"/>
+      <text x="111" y="317" text-anchor="middle" fill="#5bb8d4" font-size="12" font-family="sans-serif" font-weight="bold">H₂O</text>
+
+      <!-- O₂ arrow upward -->
+      <line x1="111" y1="300" x2="111" y2="255" stroke="#e8f0e2" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <polygon points="111,248 107,259 115,259" fill="#e8f0e2"/>
+      <text x="97" y="245" fill="#c8d8c0" font-size="10" font-family="sans-serif">½ O₂</text>
+      <text x="97" y="258" fill="#8aab7e" font-size="10" font-family="sans-serif">2 H⁺</text>
+
+      <!-- 2e⁻ arrow from H₂O toward P680 hole at +0.4V (y=258) x=160 -->
+      <line x1="140" y1="308" x2="156" y2="264" stroke="#5bb8d4" stroke-width="2" stroke-dasharray="4,3"/>
+      <polygon points="158,258 150,266 162,268" fill="#5bb8d4"/>
+      <text x="148" y="298" fill="#5bb8d4" font-size="9" font-family="sans-serif">2 e⁻</text>
+
+      <!-- ── FOTOSYSTEM II ── -->
+      <!-- FS II box at +0.4V (y=258) -->
+      <rect x="135" y="242" width="56" height="32" rx="7" fill="#1e2e1a" stroke="#f0c040" stroke-width="2"/>
+      <text x="163" y="256" text-anchor="middle" fill="#f0c040" font-size="11" font-family="sans-serif" font-weight="bold">P680</text>
+      <text x="163" y="269" text-anchor="middle" fill="#8aab7e" font-size="9" font-family="sans-serif">FS II</text>
+
+      <!-- LIGHT ARROW FS II (red, up): +0.4V→ -0.8V: (163,242)→(163,95) -->
+      <defs>
+        <marker id="arrowRed" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+          <polygon points="0,0 8,4 0,8" fill="#ff6040"/>
+        </marker>
+      </defs>
+      <line x1="163" y1="242" x2="163" y2="103" stroke="#ff6040" stroke-width="3.5" marker-end="url(#arrowRed)"/>
+      <!-- Licht label left of arrow -->
+      <text x="149" y="175" text-anchor="end" fill="#ff6040" font-size="12" font-family="sans-serif" font-weight="bold">Licht</text>
+      <text x="151" y="189" text-anchor="end" fill="#ff6040" font-size="16">☀</text>
+
+      <!-- P680* excited state dot -->
+      <circle cx="163" cy="95" r="8" fill="#f0c040" stroke="#ff6040" stroke-width="2"/>
+      <text x="181" y="90" fill="#f0c040" font-size="11" font-family="sans-serif" font-weight="bold">P680*</text>
+      <text x="181" y="103" fill="#8aab7e" font-size="10" font-family="sans-serif">−0,8 V</text>
+
+      <!-- ── ELEKTRONEN-TRANSPORTKETTE I ── -->
+      <!-- e⁻ flow: P680* (163,95) → P700 level (400,258) -->
+      <line x1="171" y1="97" x2="393" y2="254" stroke="#f0c040" stroke-width="2.5" stroke-dasharray="8,4" opacity="0.9"/>
+      <polygon points="400,258 387,251 392,264" fill="#f0c040"/>
+
+      <!-- ETK I label on path -->
+      <text x="264" y="151" text-anchor="middle" fill="#8aab7e" font-size="11" font-family="sans-serif">Elektronen-</text>
+      <text x="264" y="164" text-anchor="middle" fill="#8aab7e" font-size="11" font-family="sans-serif">transportkette I</text>
+
+      <!-- ATP synthesis indicator (midpoint ~x=267 y=185) -->
+      <rect x="230" y="192" width="72" height="24" rx="7" fill="#162214" stroke="#f0c040" stroke-width="1.5"/>
+      <text x="266" y="208" text-anchor="middle" fill="#f0c040" font-size="11" font-family="sans-serif" font-weight="bold">→ ATP</text>
+      <line x1="266" y1="192" x2="266" y2="183" stroke="#f0c040" stroke-width="1.5" stroke-dasharray="3,2"/>
+      <text x="218" y="181" text-anchor="end" fill="#d4a420" font-size="10" font-family="sans-serif">ADP + Pᵢ</text>
+
+      <!-- ── FOTOSYSTEM I ── -->
+      <!-- FS I box at +0.4V (y=258) x=400 -->
+      <rect x="374" y="242" width="56" height="32" rx="7" fill="#1e2e1a" stroke="#7ecb52" stroke-width="2"/>
+      <text x="402" y="256" text-anchor="middle" fill="#7ecb52" font-size="11" font-family="sans-serif" font-weight="bold">P700</text>
+      <text x="402" y="269" text-anchor="middle" fill="#8aab7e" font-size="9" font-family="sans-serif">FS I</text>
+
+      <!-- LIGHT ARROW FS I (red, up): +0.4V → -1.2V: (402,242)→(402,40) -->
+      <line x1="402" y1="242" x2="402" y2="48" stroke="#ff6040" stroke-width="3.5" marker-end="url(#arrowRed)"/>
+      <!-- Licht label right of arrow -->
+      <text x="416" y="152" fill="#ff6040" font-size="12" font-family="sans-serif" font-weight="bold">Licht</text>
+      <text x="415" y="167" fill="#ff6040" font-size="16">☀</text>
+
+      <!-- P700* excited state dot -->
+      <circle cx="402" cy="40" r="8" fill="#7ecb52" stroke="#ff6040" stroke-width="2"/>
+      <text x="420" y="36" fill="#7ecb52" font-size="11" font-family="sans-serif" font-weight="bold">P700*</text>
+      <text x="420" y="49" fill="#8aab7e" font-size="10" font-family="sans-serif">−1,2 V</text>
+
+      <!-- ── ELEKTRONEN-TRANSPORTKETTE II ── -->
+      <!-- e⁻ flow: P700* (402,40) → NADPH (590,160) -->
+      <line x1="410" y1="42" x2="574" y2="156" stroke="#7ecb52" stroke-width="2.5" stroke-dasharray="8,4" opacity="0.9"/>
+      <polygon points="581,160 569,152 573,165" fill="#7ecb52"/>
+
+      <!-- ETK II label -->
+      <text x="510" y="83" text-anchor="middle" fill="#8aab7e" font-size="11" font-family="sans-serif">Elektronen-</text>
+      <text x="510" y="96" text-anchor="middle" fill="#8aab7e" font-size="11" font-family="sans-serif">transportkette II</text>
+
+      <!-- ── NADPH product ── -->
+      <rect x="584" y="147" width="118" height="34" rx="8" fill="#162214" stroke="#7ecb52" stroke-width="2"/>
+      <text x="643" y="162" text-anchor="middle" fill="#7ecb52" font-size="12" font-family="sans-serif" font-weight="bold">NADPH+H⁺</text>
+      <text x="643" y="175" text-anchor="middle" fill="#8aab7e" font-size="9" font-family="sans-serif">−0,32 V</text>
+      <!-- NADP+ input -->
+      <text x="605" y="136" fill="#8aab7e" font-size="10" font-family="sans-serif">NADP⁺ + 2H⁺</text>
+      <line x1="643" y1="140" x2="643" y2="147" stroke="#7ecb52" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+      <!-- FS labels below boxes -->
+      <text x="163" y="290" text-anchor="middle" fill="#6a8a62" font-size="10" font-family="sans-serif">Fotosystem II</text>
+      <text x="402" y="290" text-anchor="middle" fill="#6a8a62" font-size="10" font-family="sans-serif">Fotosystem I</text>
+
+      <!-- Legend: Licht = orange, Elektronenfluss = dashed -->
+      <rect x="82" y="336" width="165" height="26" rx="6" fill="#162214" stroke="#2e4228" stroke-width="1"/>
+      <line x1="92" y1="349" x2="112" y2="349" stroke="#ff6040" stroke-width="2.5"/>
+      <text x="118" y="353" fill="#8aab7e" font-size="10" font-family="sans-serif">Lichtenergie</text>
+      <line x1="178" y1="349" x2="198" y2="349" stroke="#f0c040" stroke-width="2" stroke-dasharray="5,3"/>
+      <text x="204" y="353" fill="#8aab7e" font-size="10" font-family="sans-serif">e⁻-Fluss</text>
+      <!-- Higher/lower energy labels -->
+      <text x="700" y="44" text-anchor="end" fill="#3a5a32" font-size="10" font-family="sans-serif">hohe Energie</text>
+      <text x="700" y="317" text-anchor="end" fill="#3a5a32" font-size="10" font-family="sans-serif">niedrige Energie</text>
+    </svg>
+  </div>
+
+  <!-- ── STEPS ── -->
+  <p class="section-title">Ablauf – Schritt für Schritt</p>
+  <div class="steps-container">
+
+    <!-- STEP 1 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-number light">1</div>
+        <div class="step-title-wrap">
+          <div class="step-title">Lichtabsorption im Fotosystem II (P680)</div>
+          <div class="step-subtitle">Anregung von Chlorophyll a</div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="mini-diag">
+          <svg viewBox="0 0 500 90" xmlns="http://www.w3.org/2000/svg">
+            <rect width="500" height="90" fill="#0f1a0e"/>
+            <!-- Sun -->
+            <circle cx="50" cy="45" r="18" fill="#ff6040" opacity="0.85"/>
+            <text x="50" y="51" text-anchor="middle" fill="#fff" font-size="20">☀</text>
+            <!-- Arrow: sun → FS II -->
+            <line x1="70" y1="45" x2="115" y2="45" stroke="#ff6040" stroke-width="2.5"/>
+            <polygon points="122,45 113,41 113,49" fill="#ff6040"/>
+            <text x="92" y="38" text-anchor="middle" fill="#ff6040" font-size="10" font-family="sans-serif">Lichtenergie</text>
+            <!-- FS II box -->
+            <rect x="125" y="24" width="105" height="42" rx="8" fill="#1e2e1a" stroke="#f0c040" stroke-width="2"/>
+            <text x="177" y="42" text-anchor="middle" fill="#f0c040" font-size="13" font-family="sans-serif" font-weight="bold">Fotosystem II</text>
+            <text x="177" y="58" text-anchor="middle" fill="#d4a420" font-size="11" font-family="sans-serif">P680</text>
+            <!-- Arrow: FS II → electrons -->
+            <line x1="230" y1="45" x2="275" y2="45" stroke="#f0c040" stroke-width="2.5"/>
+            <polygon points="282,45 273,41 273,49" fill="#f0c040"/>
+            <!-- 2e- circles -->
+            <circle cx="295" cy="45" r="10" fill="#f0c040" opacity="0.8"/>
+            <text x="295" y="49" text-anchor="middle" fill="#0f1a0e" font-size="10" font-family="sans-serif" font-weight="bold">e⁻</text>
+            <circle cx="319" cy="45" r="10" fill="#f0c040" opacity="0.8"/>
+            <text x="319" y="49" text-anchor="middle" fill="#0f1a0e" font-size="10" font-family="sans-serif" font-weight="bold">e⁻</text>
+            <!-- Arrow electrons to ETK -->
+            <line x1="330" y1="45" x2="375" y2="45" stroke="#f0c040" stroke-width="2" stroke-dasharray="5,3"/>
+            <polygon points="382,45 373,41 373,49" fill="#f0c040"/>
+            <text x="420" y="38" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">→ ETK I</text>
+            <text x="307" y="73" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">2 Elektronen (−0,8 V)</text>
+          </svg>
+        </div>
+        Lichtenergie trifft auf das Reaktionszentrum des <span class="keyword">Fotosystems II</span> und regt Chlorophyll a (<span class="keyword">P680</span>) an. P680 gibt daraufhin 2 Elektronen ab, die auf eine Elektronentransportkette übertragen werden.
+        <ul>
+          <li>P680 absorbiert Licht bei 680 nm</li>
+          <li>Die abgegebenen Elektronen werden energiereicher (Redoxpotential ~ −0,8 V)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-number light">2</div>
+        <div class="step-title-wrap">
+          <div class="step-title">Fotolyse des Wassers</div>
+          <div class="step-subtitle">Elektronenlücke wird geschlossen</div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="mini-diag">
+          <svg viewBox="0 0 500 95" xmlns="http://www.w3.org/2000/svg">
+            <rect width="500" height="95" fill="#0f1a0e"/>
+            <!-- H2O box -->
+            <rect x="20" y="30" width="68" height="32" rx="7" fill="#142020" stroke="#5bb8d4" stroke-width="2"/>
+            <text x="54" y="51" text-anchor="middle" fill="#5bb8d4" font-size="15" font-family="sans-serif" font-weight="bold">H₂O</text>
+            <!-- Split arrow -->
+            <line x1="88" y1="46" x2="116" y2="46" stroke="#e8f0e2" stroke-width="2"/>
+            <text x="122" y="50" fill="#8aab7e" font-size="18">⟶</text>
+            <!-- Products -->
+            <!-- 2H+ -->
+            <rect x="150" y="14" width="66" height="26" rx="6" fill="#1e2e1a" stroke="#8aab7e" stroke-width="1"/>
+            <text x="183" y="31" text-anchor="middle" fill="#e8f0e2" font-size="12" font-family="sans-serif">2 H⁺</text>
+            <!-- O2 -->
+            <rect x="230" y="14" width="80" height="26" rx="6" fill="#1e1818" stroke="#e8f0e2" stroke-width="1"/>
+            <text x="270" y="31" text-anchor="middle" fill="#e8f0e2" font-size="12" font-family="sans-serif">½ O₂ ↑ Luft</text>
+            <!-- 2e- to P680 hole -->
+            <rect x="325" y="50" width="78" height="28" rx="6" fill="#1e2e1a" stroke="#f0c040" stroke-width="1"/>
+            <text x="364" y="68" text-anchor="middle" fill="#f0c040" font-size="12" font-family="sans-serif">2 e⁻ → P680</text>
+            <!-- Arrows from split to products -->
+            <line x1="155" y1="46" x2="164" y2="40" stroke="#8aab7e" stroke-width="1.5"/>
+            <line x1="155" y1="46" x2="238" y2="40" stroke="#e8f0e2" stroke-width="1.5"/>
+            <line x1="155" y1="46" x2="325" y2="58" stroke="#f0c040" stroke-width="1.5"/>
+            <text x="270" y="84" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">Elektronenlücke im P680 geschlossen</text>
+          </svg>
+        </div>
+        Die Elektronenlücke im P680 wird durch Elektronen aus der <span class="keyword blue">Fotolyse des Wassers</span> aufgefüllt.
+        <div class="formula">H₂O → 2 H⁺ + ½ O₂ + 2 e⁻</div>
+        <ul>
+          <li><span class="keyword blue">Sauerstoff (O₂)</span> wird als Gas freigesetzt</li>
+          <li>Protonen (H⁺) bleiben im Thylakoidlumen → wichtig für ATP-Synthese</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-number light">3</div>
+        <div class="step-title-wrap">
+          <div class="step-title">Elektronentransportkette &amp; ATP-Synthese</div>
+          <div class="step-subtitle">Energetisches Modell der ATP-Bildung</div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="mini-diag">
+          <svg viewBox="0 0 500 100" xmlns="http://www.w3.org/2000/svg">
+            <rect width="500" height="100" fill="#0f1a0e"/>
+            <!-- e- high energy on left -->
+            <circle cx="36" cy="38" r="12" fill="#f0c040" opacity="0.9"/>
+            <text x="36" y="42" text-anchor="middle" fill="#0f1a0e" font-size="10" font-weight="bold">e⁻</text>
+            <text x="36" y="62" text-anchor="middle" fill="#f0c040" font-size="9" font-family="sans-serif">hoch</text>
+            <!-- Redoxsystems staircase -->
+            <rect x="70" y="25" width="48" height="26" rx="5" fill="#1e2e1a" stroke="#5a7a52" stroke-width="1.5"/>
+            <text x="94" y="42" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">Redox I</text>
+            <rect x="138" y="38" width="48" height="26" rx="5" fill="#1e2e1a" stroke="#5a7a52" stroke-width="1.5"/>
+            <text x="162" y="55" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">Redox II</text>
+            <rect x="206" y="51" width="48" height="26" rx="5" fill="#1e2e1a" stroke="#5a7a52" stroke-width="1.5"/>
+            <text x="230" y="68" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">Redox III</text>
+            <!-- Arrows between redoxsystems -->
+            <line x1="48" y1="38" x2="70" y2="38" stroke="#f0c040" stroke-width="2"/>
+            <line x1="118" y1="38" x2="138" y2="45" stroke="#f0c040" stroke-width="1.5"/>
+            <line x1="186" y1="51" x2="206" y2="58" stroke="#f0c040" stroke-width="1.5"/>
+            <!-- ATP synthesis arrow down from Redox II -->
+            <line x1="162" y1="64" x2="162" y2="80" stroke="#f0c040" stroke-width="1.5"/>
+            <polygon points="162,87 158,78 166,78" fill="#f0c040"/>
+            <rect x="126" y="87" width="72" height="10" rx="4" fill="#162214" stroke="#f0c040" stroke-width="1"/>
+            <text x="162" y="96" text-anchor="middle" fill="#f0c040" font-size="9" font-family="sans-serif" font-weight="bold">ADP + Pᵢ → ATP</text>
+            <!-- e- low energy on right of redox III -->
+            <line x1="254" y1="64" x2="300" y2="64" stroke="#f0c040" stroke-width="1.5"/>
+            <circle cx="315" cy="64" r="12" fill="#3a5032" opacity="0.9"/>
+            <text x="315" y="68" text-anchor="middle" fill="#8aab7e" font-size="10" font-weight="bold">e⁻</text>
+            <text x="315" y="84" text-anchor="middle" fill="#8aab7e" font-size="9" font-family="sans-serif">niedrig</text>
+            <!-- →  FS I label -->
+            <line x1="327" y1="64" x2="365" y2="64" stroke="#8aab7e" stroke-width="1.5" stroke-dasharray="4,3"/>
+            <polygon points="372,64 363,60 363,68" fill="#8aab7e"/>
+            <text x="420" y="55" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">→ Foto-</text>
+            <text x="420" y="68" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">system I</text>
+            <!-- Energy gradient arrow -->
+            <line x1="36" y1="18" x2="280" y2="18" stroke="#2a3a26" stroke-width="1" stroke-dasharray="3,3"/>
+            <polygon points="287,18 278,14 278,22" fill="#2a3a26"/>
+            <text x="158" y="14" text-anchor="middle" fill="#3a5a32" font-size="9" font-family="sans-serif">Energie wird schrittweise abgegeben → ATP-Synthese</text>
+          </svg>
+        </div>
+        Die energiereichen Elektronen durchlaufen eine Kette aus <span class="keyword">Redoxsystemen</span>. Dabei geben sie schrittweise Energie ab.
+        <ul>
+          <li>Die freiwerdende Energie wird zur <span class="keyword">ATP-Synthese</span> genutzt (Chemiosmose)</li>
+          <li>Der Elektronenfluss treibt eine Protonenpumpe → Protonengradient → ATP-Synthase</li>
+          <li>Aus ADP + Pᵢ entsteht <span class="keyword">ATP</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-number light">4</div>
+        <div class="step-title-wrap">
+          <div class="step-title">Lichtabsorption im Fotosystem I (P700)</div>
+          <div class="step-subtitle">Zweite Lichtanregung</div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="mini-diag">
+          <svg viewBox="0 0 500 90" xmlns="http://www.w3.org/2000/svg">
+            <rect width="500" height="90" fill="#0f1a0e"/>
+            <!-- e- from ETK I -->
+            <circle cx="36" cy="45" r="12" fill="#3a5032"/>
+            <text x="36" y="49" text-anchor="middle" fill="#8aab7e" font-size="10" font-weight="bold">e⁻</text>
+            <line x1="48" y1="45" x2="88" y2="45" stroke="#8aab7e" stroke-width="2" stroke-dasharray="5,3"/>
+            <polygon points="95,45 86,41 86,49" fill="#8aab7e"/>
+            <!-- FS I box -->
+            <rect x="100" y="26" width="100" height="38" rx="8" fill="#1e2e1a" stroke="#7ecb52" stroke-width="2"/>
+            <text x="150" y="43" text-anchor="middle" fill="#7ecb52" font-size="13" font-family="sans-serif" font-weight="bold">Fotosystem I</text>
+            <text x="150" y="57" text-anchor="middle" fill="#5a9a42" font-size="11" font-family="sans-serif">P700</text>
+            <!-- Sun arrow from below -->
+            <line x1="150" y1="64" x2="150" y2="76" stroke="#ff6040" stroke-width="2.5"/>
+            <polygon points="150,64 146,75 154,75" fill="#ff6040"/>
+            <text x="185" y="78" fill="#ff6040" font-size="11" font-family="sans-serif" font-weight="bold">☀ Licht</text>
+            <!-- Arrow out to ETK II -->
+            <line x1="200" y1="45" x2="248" y2="45" stroke="#7ecb52" stroke-width="2.5"/>
+            <polygon points="255,45 246,41 246,49" fill="#7ecb52"/>
+            <!-- high energy e- -->
+            <circle cx="268" cy="45" r="12" fill="#7ecb52" opacity="0.85"/>
+            <text x="268" y="49" text-anchor="middle" fill="#0f1a0e" font-size="10" font-weight="bold">e⁻</text>
+            <circle cx="292" cy="45" r="12" fill="#7ecb52" opacity="0.85"/>
+            <text x="292" y="49" text-anchor="middle" fill="#0f1a0e" font-size="10" font-weight="bold">e⁻</text>
+            <text x="268" y="72" text-anchor="middle" fill="#7ecb52" font-size="9" font-family="sans-serif">(−1,2 V)</text>
+            <!-- Arrow to ETK II label -->
+            <line x1="305" y1="45" x2="348" y2="45" stroke="#7ecb52" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <polygon points="355,45 346,41 346,49" fill="#7ecb52"/>
+            <text x="400" y="40" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">→ ETK II</text>
+            <text x="400" y="53" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">→ NADPH+H⁺</text>
+          </svg>
+        </div>
+        Die Elektronen aus ETK I gelangen zum Reaktionszentrum des <span class="keyword">Fotosystems I (P700)</span>. Erneut hebt Lichtenergie die Elektronen auf ein höheres Energieniveau (ca. −1,2 V).
+        <ul>
+          <li>Die Elektronenlücke im P700 wird durch Elektronen aus der vorgeschalteten Transportkette gefüllt</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-number light">5</div>
+        <div class="step-title-wrap">
+          <div class="step-title">Bildung von NADPH+H⁺</div>
+          <div class="step-subtitle">Reduktionsäquivalent für den Calvin-Zyklus</div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="mini-diag">
+          <svg viewBox="0 0 500 90" xmlns="http://www.w3.org/2000/svg">
+            <rect width="500" height="90" fill="#0f1a0e"/>
+            <!-- Inputs -->
+            <rect x="20" y="15" width="70" height="26" rx="6" fill="#162214" stroke="#5a7a52" stroke-width="1.5"/>
+            <text x="55" y="32" text-anchor="middle" fill="#8aab7e" font-size="12" font-family="sans-serif">NADP⁺</text>
+            <rect x="20" y="49" width="70" height="26" rx="6" fill="#162214" stroke="#5a7a52" stroke-width="1.5"/>
+            <text x="55" y="66" text-anchor="middle" fill="#8aab7e" font-size="12" font-family="sans-serif">2 H⁺ + 2 e⁻</text>
+            <!-- Plus sign -->
+            <text x="100" y="50" fill="#5a7a52" font-size="22" font-weight="bold">+</text>
+            <!-- Arrow right -->
+            <line x1="120" y1="45" x2="175" y2="45" stroke="#7ecb52" stroke-width="3"/>
+            <polygon points="182,45 173,41 173,49" fill="#7ecb52"/>
+            <!-- ETK II label on arrow -->
+            <text x="148" y="37" text-anchor="middle" fill="#8aab7e" font-size="9" font-family="sans-serif">ETK II</text>
+            <!-- Product box -->
+            <rect x="188" y="22" width="130" height="46" rx="10" fill="#1a2e18" stroke="#7ecb52" stroke-width="2.5"/>
+            <text x="253" y="43" text-anchor="middle" fill="#7ecb52" font-size="14" font-family="sans-serif" font-weight="bold">NADPH+H⁺</text>
+            <text x="253" y="60" text-anchor="middle" fill="#5a9a42" font-size="10" font-family="sans-serif">Reduktionsäquivalent</text>
+            <!-- Arrow to Calvin label -->
+            <line x1="318" y1="45" x2="360" y2="45" stroke="#7ecb52" stroke-width="2" stroke-dasharray="5,3"/>
+            <polygon points="367,45 358,41 358,49" fill="#7ecb52"/>
+            <text x="415" y="37" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">→ Calvin-</text>
+            <text x="415" y="50" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">Zyklus</text>
+          </svg>
+        </div>
+        Die hochenergetischen Elektronen aus Fotosystem I werden auf NADP⁺ übertragen.
+        <div class="formula">NADP⁺ + 2 H⁺ + 2 e⁻ → NADPH + H⁺</div>
+        <ul>
+          <li>NADPH+H⁺ ist das <span class="keyword green">Reduktionsäquivalent</span> der Lichtreaktion</li>
+          <li>Es wird im Calvin-Zyklus zur Reduktion von PGS zu G3P benötigt</li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- end steps-licht -->
+
+  <div class="flow-box">
+    <h3>Bilanz der Lichtreaktion</h3>
+    <div class="flow-row">
+      <span class="flow-item in">H₂O</span>
+      <span class="flow-item in">Lichtenergie</span>
+      <span class="flow-item in">ADP + Pᵢ</span>
+      <span class="flow-item in">NADP⁺</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item out gold">ATP</span>
+      <span class="flow-item out gold">NADPH+H⁺</span>
+      <span class="flow-item out">O₂</span>
+    </div>
+  </div>
+
+  <!-- QUIZ LICHTREAKTION -->
+  <div class="quiz-section">
+    <div class="quiz-header">
+      <h3>☀ Wissenscheck: Lichtreaktion</h3>
+      <span class="quiz-progress" id="licht-progress">Frage 1 von 5</span>
+    </div>
+    <div class="quiz-body">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="licht-bar" style="width:20%"></div></div>
+      <div id="licht-quiz-questions">
+
+        <div class="question-block active" data-correct="1">
+          <div class="question-text">In welchem Teil des Chloroplasten findet die Lichtreaktion statt?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'licht',0)">Stroma</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',1)">Thylakoidmembran</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',2)">Zellkern</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',3)">Äußere Chloroplastenmembran</button>
+          </div>
+          <div class="feedback-box correct">✓ Richtig! Die Lichtreaktion findet in der Thylakoidmembran statt – dort sind die Fotosysteme und Elektronentransportketten eingebettet.</div>
+          <div class="feedback-box wrong">✗ Leider nicht. Die Lichtreaktion findet in der <strong>Thylakoidmembran</strong> statt. Der Calvin-Zyklus läuft im Stroma ab.</div>
+        </div>
+
+        <div class="question-block" data-correct="2">
+          <div class="question-text">Welches Molekül wird bei der Fotolyse gespalten?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'licht',0)">CO₂</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',1)">NADPH+H⁺</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',2)">H₂O</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',3)">ATP</button>
+          </div>
+          <div class="feedback-box correct">✓ Richtig! Wasser (H₂O) wird bei der Fotolyse in 2 H⁺, ½ O₂ und 2 e⁻ gespalten, um die Elektronenlücke im P680 zu schließen.</div>
+          <div class="feedback-box wrong">✗ Nicht korrekt. Bei der Fotolyse wird <strong>Wasser (H₂O)</strong> gespalten. Dabei entstehen Protonen, Sauerstoff und Elektronen.</div>
+        </div>
+
+        <div class="question-block" data-correct="3">
+          <div class="question-text">Welches Gas entsteht als Nebenprodukt der Fotolyse?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'licht',0)">CO₂</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',1)">H₂</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',2)">NADPH+H⁺</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',3)">O₂</button>
+          </div>
+          <div class="feedback-box correct">✓ Richtig! Sauerstoff (O₂) ist das Nebenprodukt der Fotolyse – für Pflanzen Abfallprodukt, für uns lebensnotwendig!</div>
+          <div class="feedback-box wrong">✗ Falsch. Bei der Fotolyse entsteht <strong>Sauerstoff (O₂)</strong> als Nebenprodukt, der in die Atmosphäre abgegeben wird.</div>
+        </div>
+
+        <div class="question-block" data-correct="0">
+          <div class="question-text">Welche zwei Produkte der Lichtreaktion werden im Calvin-Zyklus benötigt?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'licht',0)">ATP und NADPH+H⁺</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',1)">O₂ und CO₂</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',2)">H₂O und NADP⁺</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',3)">ADP und NADP⁺</button>
+          </div>
+          <div class="feedback-box correct">✓ Genau! ATP (Energie) und NADPH+H⁺ (Reduktionsäquivalent) aus der Lichtreaktion werden im Calvin-Zyklus gebraucht. Das ist die direkte Verbindung beider Reaktionen!</div>
+          <div class="feedback-box wrong">✗ Nicht korrekt. Im Calvin-Zyklus werden <strong>ATP</strong> (Energie) und <strong>NADPH+H⁺</strong> (Reduktionsäquivalent) aus der Lichtreaktion benötigt.</div>
+        </div>
+
+        <div class="question-block" data-correct="2">
+          <div class="question-text">Warum braucht die Lichtreaktion zwei Fotosysteme (FS II und FS I)?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'licht',0)">Um doppelt so viel O₂ zu produzieren</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',1)">Weil Chlorophyll nur in zwei Formen vorkommt</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',2)">Weil eine Lichtanregung nicht genug Energie liefert, um NADP⁺ zu reduzieren</button>
+            <button class="option-btn" onclick="answerQuestion(this,'licht',3)">Damit ATP und NADPH gleichzeitig gespalten werden</button>
+          </div>
+          <div class="feedback-box correct">✓ Richtig! Das Redoxpotential von H₂O (+0,8 V) zu NADPH (−0,32 V) ist zu groß, als dass eine Lichtanregung ausreicht. Zwei Fotosysteme heben die Elektronen in zwei Stufen auf das nötige Energieniveau.</div>
+          <div class="feedback-box wrong">✗ Nicht ganz. Der Energieunterschied zwischen H₂O (+0,8 V) und NADPH (−0,32 V) ist zu groß für eine einzige Anregung. <strong>Zwei Fotosysteme</strong> ermöglichen die schrittweise Anhebung der Elektronen.</div>
+        </div>
+
+      </div>
+
+      <div class="result-screen" id="licht-result">
+        <div class="result-emoji" id="licht-emoji"></div>
+        <div class="result-score" id="licht-score"></div>
+        <div class="result-label">von 5 Fragen richtig</div>
+        <div class="result-message" id="licht-msg"></div>
+        <button class="btn primary" onclick="resetQuiz('licht')">Nochmal versuchen</button>
+      </div>
+      <div class="quiz-nav" id="licht-nav">
+        <span style="font-size:13px;color:var(--text-muted)" id="licht-hint">Wähle eine Antwort</span>
+        <button class="btn primary" id="licht-next" onclick="nextQuestion('licht')" disabled>Weiter →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="drehscheibe-hint">
+    <h3>⊙ Für deine Drehscheibe: Lichtreaktion</h3>
+    <ul>
+      <li><strong>Ort:</strong> Thylakoidmembran</li>
+      <li><strong>Edukte:</strong> H₂O + Lichtenergie</li>
+      <li><strong>Produkte:</strong> ATP, NADPH+H⁺, O₂</li>
+      <li><strong>Stationen:</strong> FS II (P680) → Fotolyse H₂O → ETK I + ATP → FS I (P700) → ETK II → NADPH+H⁺</li>
+      <li><strong>Besonderheit:</strong> Zwei Fotosysteme nötig (nichtzykl. Elektronentransport)</li>
+    </ul>
+  </div>
+
+</div><!-- end tab-licht -->
+
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--  TAB 2: CALVIN-ZYKLUS                                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-calvin">
+
+  <div class="intro-card dark">
+    <span class="location-badge dark">Ort: Stroma des Chloroplasten</span>
+    <h2>Calvin-Zyklus – Dunkelreaktion / Sekundärreaktion</h2>
+    <p>Im Calvin-Zyklus (benannt nach Melvin Calvin) wird CO₂ mithilfe von ATP und NADPH+H⁺ in energiereiche organische Verbindungen (G3P → Glucose) umgewandelt. Der Zyklus läuft in drei Phasen ab.</p>
+  </div>
+
+  <!-- ── OVERVIEW: CALVIN CIRCULAR ── -->
+  <p class="section-title">Übersicht: Die drei Phasen des Calvin-Zyklus</p>
+  <div class="diagram-wrap">
+    <!-- Canvas 700×430 | Center=(350,215) | r=130 -->
+    <!-- Arc points: 270°=(350,85) | 30°=(463,280) | 150°=(237,280) -->
+    <svg viewBox="0 0 700 430" xmlns="http://www.w3.org/2000/svg">
+      <rect width="700" height="430" fill="#0f1a0e"/>
+
+      <!-- TITLE -->
+      <text x="350" y="20" text-anchor="middle" fill="#5a7a52" font-size="10" font-family="sans-serif" letter-spacing="2.5">CALVIN-ZYKLUS · DREI PHASEN</text>
+
+      <!-- ── CENTER CIRCLE ── -->
+      <circle cx="350" cy="215" r="78" fill="#162214" stroke="#3a5032" stroke-width="1.5"/>
+      <text x="350" y="205" text-anchor="middle" fill="#e8f0e2" font-size="15" font-family="serif" font-weight="bold">Calvin-</text>
+      <text x="350" y="222" text-anchor="middle" fill="#e8f0e2" font-size="15" font-family="serif" font-weight="bold">Zyklus</text>
+      <text x="350" y="240" text-anchor="middle" fill="#5a7a52" font-size="10" font-family="sans-serif">Stroma des</text>
+      <text x="350" y="253" text-anchor="middle" fill="#5a7a52" font-size="10" font-family="sans-serif">Chloroplasten</text>
+
+      <!-- ── PHASE ARCS (r=130, clockwise, stroke-width=30) ── -->
+      <!-- Phase 1: Kohlenstofffixierung (blue) 270°→30° -->
+      <path d="M 350,85 A 130,130 0 0,1 463,280" fill="none" stroke="#5bb8d4" stroke-width="30" stroke-linecap="butt" opacity="0.8"/>
+      <!-- Phase 2: Reduktion (gold) 30°→150° -->
+      <path d="M 463,280 A 130,130 0 0,1 237,280" fill="none" stroke="#f0c040" stroke-width="30" stroke-linecap="butt" opacity="0.8"/>
+      <!-- Phase 3: Regeneration (green) 150°→270° -->
+      <path d="M 237,280 A 130,130 0 0,1 350,85" fill="none" stroke="#7ecb52" stroke-width="30" stroke-linecap="butt" opacity="0.8"/>
+
+      <!-- ── ARROWHEADS at end of each arc ── -->
+      <!-- Phase 1 end at (463,280): arrow direction rotate(120) -->
+      <polygon points="0,-8 14,0 0,8" transform="translate(463,280) rotate(120)" fill="#5bb8d4"/>
+      <!-- Phase 2 end at (237,280): arrow direction rotate(240) -->
+      <polygon points="0,-8 14,0 0,8" transform="translate(237,280) rotate(240)" fill="#f0c040"/>
+      <!-- Phase 3 end at (350,85): arrow direction rotate(0) -->
+      <polygon points="0,-8 14,0 0,8" transform="translate(350,85) rotate(0)" fill="#7ecb52"/>
+
+      <!-- ── PHASE LABELS ── -->
+      <!-- Phase 1 label (right side, near arc midpoint ~330°=(463,150)) -->
+      <text x="510" y="120" text-anchor="start" fill="#5bb8d4" font-size="13" font-family="sans-serif" font-weight="bold">Phase 1</text>
+      <text x="510" y="136" text-anchor="start" fill="#5bb8d4" font-size="11" font-family="sans-serif">Kohlenstoff-</text>
+      <text x="510" y="150" text-anchor="start" fill="#5bb8d4" font-size="11" font-family="sans-serif">fixierung</text>
+      <!-- Phase 2 label (bottom, near arc midpoint 90°=(350,345)) -->
+      <text x="350" y="372" text-anchor="middle" fill="#f0c040" font-size="13" font-family="sans-serif" font-weight="bold">Phase 2: Reduktion</text>
+      <text x="350" y="388" text-anchor="middle" fill="#d4a420" font-size="11" font-family="sans-serif">PGS → G3P</text>
+      <!-- Phase 3 label (left side, near arc midpoint ~210°=(237,150)) -->
+      <text x="187" y="120" text-anchor="end" fill="#7ecb52" font-size="13" font-family="sans-serif" font-weight="bold">Phase 3</text>
+      <text x="187" y="136" text-anchor="end" fill="#7ecb52" font-size="11" font-family="sans-serif">Regeneration</text>
+      <text x="187" y="150" text-anchor="end" fill="#7ecb52" font-size="11" font-family="sans-serif">des CO₂-Akzept.</text>
+
+      <!-- ── MOLECULE LABELS AT JUNCTIONS ── -->
+      <!-- RuBP at top (350, 85) -->
+      <rect x="292" y="52" width="116" height="28" rx="8" fill="#1a2e18" stroke="#7ecb52" stroke-width="2"/>
+      <text x="350" y="70" text-anchor="middle" fill="#e8f0e2" font-size="13" font-family="sans-serif" font-weight="bold">RuBP (C₅)</text>
+
+      <!-- PGS at bottom-right (463, 280) -->
+      <rect x="470" y="266" width="104" height="28" rx="8" fill="#1a2028" stroke="#5bb8d4" stroke-width="2"/>
+      <text x="522" y="284" text-anchor="middle" fill="#e8f0e2" font-size="13" font-family="sans-serif" font-weight="bold">PGS (C₃)</text>
+
+      <!-- G3P at bottom-left (237, 280) -->
+      <rect x="125" y="266" width="104" height="28" rx="8" fill="#202018" stroke="#f0c040" stroke-width="2"/>
+      <text x="177" y="284" text-anchor="middle" fill="#e8f0e2" font-size="13" font-family="sans-serif" font-weight="bold">G3P (C₃)</text>
+
+      <!-- ── INPUTS / OUTPUTS ── -->
+      <!-- CO₂ enters Phase 1 from top-right -->
+      <line x1="530" y1="55" x2="498" y2="103" stroke="#e05050" stroke-width="2.5"/>
+      <polygon points="493,110 492,97 502,100" fill="#e05050"/>
+      <rect x="500" y="34" width="74" height="24" rx="6" fill="#1e1414" stroke="#e05050" stroke-width="1.5"/>
+      <text x="537" y="50" text-anchor="middle" fill="#e05050" font-size="13" font-family="sans-serif" font-weight="bold">6 CO₂</text>
+
+      <!-- ATP + NADPH input into Phase 2 from below -->
+      <line x1="350" y1="420" x2="350" y2="356" stroke="#f0c040" stroke-width="2.5"/>
+      <polygon points="350,349 345,361 355,361" fill="#f0c040"/>
+      <text x="350" y="416" text-anchor="middle" fill="#f0c040" font-size="11" font-family="sans-serif">12 ATP + 12 NADPH+H⁺</text>
+
+      <!-- ATP for Phase 3 from left -->
+      <line x1="148" y1="188" x2="206" y2="198" stroke="#7ecb52" stroke-width="2"/>
+      <polygon points="211,200 200,193 199,205" fill="#7ecb52"/>
+      <text x="125" y="183" text-anchor="end" fill="#7ecb52" font-size="11" font-family="sans-serif">6 ATP</text>
+
+      <!-- Glucose output from Phase 2 (right side) -->
+      <line x1="572" y1="280" x2="618" y2="300" stroke="#7ecb52" stroke-width="2"/>
+      <polygon points="622,304 610,297 613,309" fill="#7ecb52"/>
+      <rect x="610" y="302" width="76" height="26" rx="7" fill="#1a2e18" stroke="#7ecb52" stroke-width="1.5"/>
+      <text x="648" y="318" text-anchor="middle" fill="#7ecb52" font-size="12" font-family="sans-serif" font-weight="bold">Glucose</text>
+      <text x="548" y="270" text-anchor="middle" fill="#8aab7e" font-size="10" font-family="sans-serif">2 G3P →</text>
+
+      <!-- ×12 annotations -->
+      <text x="522" y="302" text-anchor="middle" fill="#5a7a52" font-size="9" font-family="sans-serif">× 12 je Glucose</text>
+      <text x="177" y="302" text-anchor="middle" fill="#5a7a52" font-size="9" font-family="sans-serif">10 bleiben im Zyklus</text>
+    </svg>
+  </div>
+
+  <!-- ── STEPS ── -->
+  <p class="section-title">Die drei Phasen – Schritt für Schritt</p>
+  <div class="steps-container">
+
+    <!-- STEP 1: FIXIERUNG -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-number dark">1</div>
+        <div class="step-title-wrap">
+          <div class="step-title">Phase der Kohlenstofffixierung</div>
+          <div class="step-subtitle">CO₂ wird an RuBP gebunden</div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="mini-diag">
+          <svg viewBox="0 0 500 100" xmlns="http://www.w3.org/2000/svg">
+            <rect width="500" height="100" fill="#0f1a0e"/>
+            <!-- CO2 -->
+            <rect x="14" y="35" width="56" height="28" rx="6" fill="#1e1414" stroke="#e05050" stroke-width="1.5"/>
+            <text x="42" y="53" text-anchor="middle" fill="#e05050" font-size="13" font-family="sans-serif" font-weight="bold">CO₂</text>
+            <!-- + -->
+            <text x="80" y="56" fill="#5a7a52" font-size="20">+</text>
+            <!-- RuBP -->
+            <rect x="96" y="28" width="80" height="42" rx="8" fill="#162214" stroke="#7ecb52" stroke-width="2"/>
+            <text x="136" y="47" text-anchor="middle" fill="#7ecb52" font-size="12" font-family="sans-serif" font-weight="bold">RuBP</text>
+            <text x="136" y="62" text-anchor="middle" fill="#5a9a42" font-size="10" font-family="sans-serif">C₅-Körper</text>
+            <!-- Arrow with RuBisCO enzyme label -->
+            <line x1="176" y1="49" x2="220" y2="49" stroke="#5bb8d4" stroke-width="2.5"/>
+            <polygon points="227,49 218,45 218,53" fill="#5bb8d4"/>
+            <rect x="178" y="33" width="52" height="16" rx="4" fill="#142020" stroke="#5bb8d4" stroke-width="1"/>
+            <text x="204" y="44" text-anchor="middle" fill="#5bb8d4" font-size="9" font-family="sans-serif">RuBisCO</text>
+            <!-- Products: 2x PGS -->
+            <rect x="232" y="28" width="72" height="42" rx="8" fill="#162028" stroke="#5bb8d4" stroke-width="2"/>
+            <text x="268" y="47" text-anchor="middle" fill="#5bb8d4" font-size="12" font-family="sans-serif" font-weight="bold">2 × PGS</text>
+            <text x="268" y="62" text-anchor="middle" fill="#4a8aaa" font-size="10" font-family="sans-serif">C₃-Körper</text>
+            <!-- annotation -->
+            <text x="258" y="88" text-anchor="middle" fill="#5bb8d4" font-size="9" font-family="sans-serif">3-Phosphoglycerat</text>
+            <!-- instabiler C6 Zwischenkörper hint -->
+            <text x="204" y="83" text-anchor="middle" fill="#5a7a52" font-size="9" font-family="sans-serif">(instab. C₆ → 2× C₃)</text>
+            <!-- × 6 per glucose -->
+            <text x="400" y="40" fill="#5a7a52" font-size="10" font-family="sans-serif">× 6 Durchläufe</text>
+            <text x="400" y="54" fill="#5a7a52" font-size="10" font-family="sans-serif">= 12 PGS</text>
+            <text x="400" y="68" fill="#5a7a52" font-size="10" font-family="sans-serif">pro Glucose</text>
+          </svg>
+        </div>
+        Das Enzym <span class="keyword green">RuBisCO</span> katalysiert die Bindung von CO₂ an den CO₂-Akzeptor <span class="keyword green">RuBP</span> (Ribulose-1,5-bisphosphat, C₅-Körper).
+        <div class="formula">CO₂ + RuBP (C₅) →<sub>(RuBisCO)</sub>→ 2× PGS (C₃)</div>
+        <ul>
+          <li>Aus einem instabilen C₆-Zwischenprodukt entstehen <span class="keyword green">2 Moleküle PGS</span> (3-Phosphoglycerat)</li>
+          <li>Dieser Vorgang heißt <span class="keyword green">Kohlenstofffixierung</span> – CO₂ wird in ein organisches Molekül eingebaut</li>
+          <li>Für 1 Glucose: 6 Mal Fixierung → 12 PGS</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- STEP 2: REDUKTION -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-number dark">2</div>
+        <div class="step-title-wrap">
+          <div class="step-title">Phase der Reduktion</div>
+          <div class="step-subtitle">PGS wird zu G3P reduziert</div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="mini-diag">
+          <svg viewBox="0 0 500 100" xmlns="http://www.w3.org/2000/svg">
+            <rect width="500" height="100" fill="#0f1a0e"/>
+            <!-- PGS -->
+            <rect x="14" y="28" width="72" height="42" rx="8" fill="#162028" stroke="#5bb8d4" stroke-width="1.5"/>
+            <text x="50" y="47" text-anchor="middle" fill="#5bb8d4" font-size="12" font-family="sans-serif" font-weight="bold">12 PGS</text>
+            <text x="50" y="62" text-anchor="middle" fill="#4a8aaa" font-size="10" font-family="sans-serif">C₃-Körper</text>
+            <!-- ATP input from top -->
+            <line x1="140" y1="15" x2="140" y2="28" stroke="#f0c040" stroke-width="2"/>
+            <polygon points="140,28 136,19 144,19" fill="#f0c040"/>
+            <text x="140" y="12" text-anchor="middle" fill="#f0c040" font-size="10" font-family="sans-serif" font-weight="bold">12 ATP</text>
+            <!-- NADPH input from below -->
+            <line x1="170" y1="84" x2="170" y2="70" stroke="#7ecb52" stroke-width="2"/>
+            <polygon points="170,70 166,81 174,81" fill="#7ecb52"/>
+            <text x="175" y="94" fill="#7ecb52" font-size="10" font-family="sans-serif">12 NADPH+H⁺</text>
+            <!-- Main arrow -->
+            <line x1="86" y1="49" x2="198" y2="49" stroke="#f0c040" stroke-width="2.5"/>
+            <polygon points="205,49 196,45 196,53" fill="#f0c040"/>
+            <!-- G3P product -->
+            <rect x="210" y="28" width="72" height="42" rx="8" fill="#1e2018" stroke="#f0c040" stroke-width="2"/>
+            <text x="246" y="47" text-anchor="middle" fill="#f0c040" font-size="12" font-family="sans-serif" font-weight="bold">12 G3P</text>
+            <text x="246" y="62" text-anchor="middle" fill="#d4a420" font-size="10" font-family="sans-serif">C₃-Körper</text>
+            <!-- BPG intermediate hint -->
+            <text x="148" y="43" text-anchor="middle" fill="#5a7a52" font-size="9" font-family="sans-serif">(via BPG)</text>
+            <!-- Waste products -->
+            <line x1="282" y1="35" x2="328" y2="20" stroke="#5a7a52" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <text x="332" y="16" fill="#5a7a52" font-size="10" font-family="sans-serif">12 ADP</text>
+            <line x1="282" y1="62" x2="328" y2="78" stroke="#5a7a52" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <text x="332" y="83" fill="#5a7a52" font-size="10" font-family="sans-serif">12 NADP⁺</text>
+            <!-- Split arrow: 10 stay, 2 leave -->
+            <line x1="282" y1="49" x2="340" y2="49" stroke="#f0c040" stroke-width="2"/>
+            <polygon points="347,49 338,45 338,53" fill="#f0c040"/>
+            <rect x="350" y="28" width="130" height="22" rx="5" fill="#162214" stroke="#7ecb52" stroke-width="1"/>
+            <text x="415" y="43" text-anchor="middle" fill="#7ecb52" font-size="10" font-family="sans-serif">10 G3P → Regeneration</text>
+            <rect x="350" y="55" width="130" height="22" rx="5" fill="#1a2e18" stroke="#f0c040" stroke-width="1"/>
+            <text x="415" y="70" text-anchor="middle" fill="#f0c040" font-size="10" font-family="sans-serif">2 G3P → Glucose ⟶</text>
+          </svg>
+        </div>
+        Die 12 PGS-Moleküle werden mithilfe von <span class="keyword">ATP</span> und <span class="keyword">NADPH+H⁺</span> aus der Lichtreaktion reduziert.
+        <div class="formula">PGS + ATP + NADPH+H⁺ → G3P + ADP + NADP⁺</div>
+        <ul>
+          <li>Es entstehen 12 Moleküle <span class="keyword green">G3P</span> (Glycerinaldehyd-3-phosphat, C₃-Körper)</li>
+          <li>Zwischenstufe: Bisphosphoglycerat (BPG) – wird ATP-abhängig gebildet</li>
+          <li>Für 1 Glucose: <span class="keyword">2 G3P</span> verlassen den Zyklus; 10 bleiben für die Regeneration</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- STEP 3: REGENERATION -->
+    <div class="step-card" onclick="toggleStep(this)">
+      <div class="step-header">
+        <div class="step-number dark">3</div>
+        <div class="step-title-wrap">
+          <div class="step-title">Phase der Regeneration des CO₂-Akzeptors</div>
+          <div class="step-subtitle">RuBP wird neu gebildet</div>
+        </div>
+        <div class="step-toggle">›</div>
+      </div>
+      <div class="step-body">
+        <div class="mini-diag">
+          <svg viewBox="0 0 500 100" xmlns="http://www.w3.org/2000/svg">
+            <rect width="500" height="100" fill="#0f1a0e"/>
+            <!-- 10 G3P -->
+            <rect x="14" y="28" width="80" height="42" rx="8" fill="#1e2018" stroke="#f0c040" stroke-width="1.5"/>
+            <text x="54" y="47" text-anchor="middle" fill="#f0c040" font-size="12" font-family="sans-serif" font-weight="bold">10 G3P</text>
+            <text x="54" y="62" text-anchor="middle" fill="#d4a420" font-size="10" font-family="sans-serif">C₃-Körper</text>
+            <!-- ATP input -->
+            <line x1="148" y1="14" x2="148" y2="28" stroke="#7ecb52" stroke-width="2"/>
+            <polygon points="148,28 144,18 152,18" fill="#7ecb52"/>
+            <text x="148" y="11" text-anchor="middle" fill="#7ecb52" font-size="10" font-family="sans-serif" font-weight="bold">6 ATP</text>
+            <!-- Main arrow (complex rearrangements) -->
+            <line x1="94" y1="49" x2="190" y2="49" stroke="#7ecb52" stroke-width="2.5"/>
+            <polygon points="197,49 188,45 188,53" fill="#7ecb52"/>
+            <text x="148" y="44" text-anchor="middle" fill="#5a7a52" font-size="9" font-family="sans-serif">(via Ru5P)</text>
+            <!-- RuBP product -->
+            <rect x="202" y="24" width="100" height="50" rx="10" fill="#162214" stroke="#7ecb52" stroke-width="2.5"/>
+            <text x="252" y="46" text-anchor="middle" fill="#7ecb52" font-size="13" font-family="sans-serif" font-weight="bold">6 RuBP</text>
+            <text x="252" y="62" text-anchor="middle" fill="#5a9a42" font-size="10" font-family="sans-serif">C₅-Akzeptor</text>
+            <!-- Cycled back arrow -->
+            <line x1="302" y1="49" x2="355" y2="49" stroke="#7ecb52" stroke-width="2" stroke-dasharray="5,3"/>
+            <polygon points="362,49 353,45 353,53" fill="#7ecb52"/>
+            <text x="416" y="38" text-anchor="middle" fill="#8aab7e" font-size="11" font-family="sans-serif">→ zurück zu</text>
+            <text x="416" y="52" text-anchor="middle" fill="#8aab7e" font-size="11" font-family="sans-serif">Phase 1</text>
+            <!-- ADP waste -->
+            <line x1="252" y1="74" x2="252" y2="88" stroke="#5a7a52" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <text x="252" y="98" text-anchor="middle" fill="#5a7a52" font-size="9" font-family="sans-serif">6 ADP freigesetzt</text>
+          </svg>
+        </div>
+        Die 10 verbleibenden G3P-Moleküle werden für die <span class="keyword green">Regeneration von RuBP</span> genutzt.
+        <div class="formula">10 G3P + 6 ATP → 6 RuBP (C₅)</div>
+        <ul>
+          <li>Über den Vorläufer Ribulose-5-phosphat (Ru5P) wird RuBP regeneriert</li>
+          <li>Der CO₂-Akzeptor steht damit erneut für die Fixierung zur Verfügung</li>
+          <li><span class="keyword">Für 1 Glucose-Molekül:</span> der Zyklus muss 6-mal ablaufen (6 CO₂ fixiert)</li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- end steps-calvin -->
+
+  <div class="flow-box">
+    <h3>Bilanz des Calvin-Zyklus (6 Durchläufe = 1 Glucose)</h3>
+    <div class="flow-row">
+      <span class="flow-item in">6 CO₂</span>
+      <span class="flow-item in">18 ATP</span>
+      <span class="flow-item in">12 NADPH+H⁺</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-item out gold">Glucose (C₆)</span>
+      <span class="flow-item out">18 ADP</span>
+      <span class="flow-item out">12 NADP⁺</span>
+    </div>
+  </div>
+
+  <!-- QUIZ CALVIN -->
+  <div class="quiz-section">
+    <div class="quiz-header">
+      <h3>🌿 Wissenscheck: Calvin-Zyklus</h3>
+      <span class="quiz-progress" id="calvin-progress">Frage 1 von 5</span>
+    </div>
+    <div class="quiz-body">
+      <div class="progress-bar-wrap"><div class="progress-bar-fill green" id="calvin-bar" style="width:20%"></div></div>
+      <div id="calvin-quiz-questions">
+
+        <div class="question-block active" data-correct="3">
+          <div class="question-text">In welchem Teil des Chloroplasten läuft der Calvin-Zyklus ab?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',0)">Thylakoidmembran</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',1)">Thylakoidlumen</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',2)">Zellmembran</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',3)">Stroma</button>
+          </div>
+          <div class="feedback-box correct">✓ Richtig! Der Calvin-Zyklus findet im Stroma des Chloroplasten statt – in der wässrigen Matrix innerhalb der Chloroplastenmembran.</div>
+          <div class="feedback-box wrong">✗ Nicht korrekt. Der Calvin-Zyklus findet im <strong>Stroma</strong> statt. Die Lichtreaktion läuft in der Thylakoidmembran ab.</div>
+        </div>
+
+        <div class="question-block" data-correct="1">
+          <div class="question-text">Welches Enzym katalysiert die CO₂-Fixierung an RuBP?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',0)">ATP-Synthase</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',1)">RuBisCO</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',2)">Chlorophyll</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',3)">NADP-Reduktase</button>
+          </div>
+          <div class="feedback-box correct">✓ Richtig! RuBisCO ist das Schlüsselenzym der Kohlenstofffixierung – und wahrscheinlich das häufigste Protein der Erde!</div>
+          <div class="feedback-box wrong">✗ Falsch. Das Enzym <strong>RuBisCO</strong> katalysiert die Bindung von CO₂ an RuBP.</div>
+        </div>
+
+        <div class="question-block" data-correct="2">
+          <div class="question-text">Welcher C₃-Körper entsteht direkt bei der Kohlenstofffixierung?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',0)">RuBP</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',1)">G3P (Glycerinaldehyd-3-phosphat)</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',2)">PGS (3-Phosphoglycerat)</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',3)">Glucose</button>
+          </div>
+          <div class="feedback-box correct">✓ Richtig! PGS (3-Phosphoglycerat) ist das erste stabile Produkt der CO₂-Fixierung. Deshalb werden Pflanzen, die diesen Weg nutzen, auch C₃-Pflanzen genannt.</div>
+          <div class="feedback-box wrong">✗ Nicht richtig. Direkt nach der Fixierung entsteht <strong>PGS (3-Phosphoglycerat)</strong>. G3P entsteht erst nach der Reduktion.</div>
+        </div>
+
+        <div class="question-block" data-correct="0">
+          <div class="question-text">Was wird in der Phase der Reduktion benötigt?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',0)">ATP und NADPH+H⁺</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',1)">Nur CO₂ und Licht</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',2)">O₂ und NADP⁺</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',3)">Nur RuBisCO</button>
+          </div>
+          <div class="feedback-box correct">✓ Genau! ATP und NADPH+H⁺ aus der Lichtreaktion werden gebraucht, um PGS zu G3P zu reduzieren. Das ist die direkte Verbindung zwischen Licht- und Dunkelreaktion!</div>
+          <div class="feedback-box wrong">✗ Falsch. Für die Reduktion von PGS zu G3P werden <strong>ATP</strong> (Energie) und <strong>NADPH+H⁺</strong> (Reduktionsäquivalent) aus der Lichtreaktion benötigt.</div>
+        </div>
+
+        <div class="question-block" data-correct="3">
+          <div class="question-text">Wie oft muss der Calvin-Zyklus ablaufen, um ein Molekül Glucose (C₆) zu bilden?</div>
+          <div class="options-grid">
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',0)">1-mal</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',1)">2-mal</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',2)">3-mal</button>
+            <button class="option-btn" onclick="answerQuestion(this,'calvin',3)">6-mal</button>
+          </div>
+          <div class="feedback-box correct">✓ Richtig! Pro Zyklusdurchlauf wird nur 1 CO₂ fixiert. Glucose hat 6 C-Atome, also sind 6 Durchläufe nötig. Dabei entstehen 12 G3P, wovon 2 für die Glucose genutzt werden.</div>
+          <div class="feedback-box wrong">✗ Leider falsch. Der Zyklus muss <strong>6-mal</strong> ablaufen: Pro Durchlauf 1 CO₂, für Glucose (C₆) werden 6 CO₂ benötigt.</div>
+        </div>
+
+      </div>
+
+      <div class="result-screen" id="calvin-result">
+        <div class="result-emoji" id="calvin-emoji"></div>
+        <div class="result-score" id="calvin-score"></div>
+        <div class="result-label">von 5 Fragen richtig</div>
+        <div class="result-message" id="calvin-msg"></div>
+        <button class="btn primary" onclick="resetQuiz('calvin')">Nochmal versuchen</button>
+      </div>
+      <div class="quiz-nav" id="calvin-nav">
+        <span style="font-size:13px;color:var(--text-muted)" id="calvin-hint">Wähle eine Antwort</span>
+        <button class="btn primary" id="calvin-next" onclick="nextQuestion('calvin')" disabled>Weiter →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="drehscheibe-hint">
+    <h3>⊙ Für deine Drehscheibe: Calvin-Zyklus</h3>
+    <ul>
+      <li><strong>Ort:</strong> Stroma des Chloroplasten</li>
+      <li><strong>Phase 1 – Kohlenstofffixierung:</strong> CO₂ + RuBP →<sub>(RuBisCO)</sub>→ 2× PGS</li>
+      <li><strong>Phase 2 – Reduktion:</strong> PGS + ATP + NADPH+H⁺ → G3P</li>
+      <li><strong>Phase 3 – Regeneration:</strong> 10 G3P + 6 ATP → 6 RuBP</li>
+      <li><strong>Endprodukt:</strong> G3P → Glucose (6 Zyklen pro Glucose-Molekül)</li>
+    </ul>
+  </div>
+
+</div><!-- end tab-calvin -->
+</main>
+
+<script>
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-'+name).classList.add('active');
+    btn.classList.add('active');
+  }
+  function toggleStep(card) { card.classList.toggle('open'); }
+
+  const quizState = {
+    licht:  {current:0,total:5,score:0,answered:false},
+    calvin: {current:0,total:5,score:0,answered:false}
+  };
+
+  function answerQuestion(btn, quiz, selectedIdx) {
+    const state = quizState[quiz];
+    if (state.answered) return;
+    state.answered = true;
+    const qBlock = document.querySelectorAll('#'+quiz+'-quiz-questions .question-block')[state.current];
+    const correctIdx = parseInt(qBlock.dataset.correct);
+    const btns = qBlock.querySelectorAll('.option-btn');
+    const feedbacks = qBlock.querySelectorAll('.feedback-box');
+    btns.forEach(b=>b.disabled=true);
+    if (selectedIdx === correctIdx) {
+      btn.classList.add('correct'); feedbacks[0].classList.add('show'); state.score++;
+    } else {
+      btn.classList.add('wrong'); btns[correctIdx].classList.add('correct'); feedbacks[1].classList.add('show');
+    }
+    const hint = document.getElementById(quiz+'-hint');
+    hint.textContent = selectedIdx===correctIdx ? '✓ Weiter zur nächsten Frage' : '✗ Schau dir die Erklärung an';
+    const nextBtn = document.getElementById(quiz+'-next');
+    nextBtn.disabled = false;
+    if (state.current === state.total-1) nextBtn.textContent = 'Ergebnis →';
+  }
+
+  function nextQuestion(quiz) {
+    const state = quizState[quiz];
+    if (!state.answered) return;
+    state.current++;
+    state.answered = false;
+    const nextBtn = document.getElementById(quiz+'-next');
+    nextBtn.disabled = true;
+    document.getElementById(quiz+'-hint').textContent = 'Wähle eine Antwort';
+    nextBtn.textContent = 'Weiter →';
+    if (state.current >= state.total) { showResult(quiz); return; }
+    document.querySelectorAll('#'+quiz+'-quiz-questions .question-block')
+      .forEach((b,i)=>b.classList.toggle('active',i===state.current));
+    const pct = Math.round(((state.current+1)/state.total)*100);
+    document.getElementById(quiz+'-bar').style.width = pct+'%';
+    document.getElementById(quiz+'-progress').textContent = 'Frage '+(state.current+1)+' von '+state.total;
+  }
+
+  function showResult(quiz) {
+    const state = quizState[quiz];
+    document.getElementById(quiz+'-quiz-questions').style.display='none';
+    document.getElementById(quiz+'-nav').style.display='none';
+    document.getElementById(quiz+'-result').classList.add('show');
+    const score = document.getElementById(quiz+'-score');
+    const emoji = document.getElementById(quiz+'-emoji');
+    const msg   = document.getElementById(quiz+'-msg');
+    score.textContent = state.score+' / '+state.total;
+    const p = state.score/state.total;
+    if (p===1)      { emoji.textContent='🌟'; score.style.color='var(--gold)';        msg.textContent='Perfekt! Du kennst diesen Bereich vollständig – bereit für die Drehscheibe!'; }
+    else if (p>=.7) { emoji.textContent='✅'; score.style.color='var(--light-green)'; msg.textContent='Sehr gut! Schau dir die Punkte nochmal an, bei denen du gezögert hast.'; }
+    else if (p>=.4) { emoji.textContent='📖'; score.style.color='var(--accent-blue)'; msg.textContent='Guter Anfang! Lies die Schritte oben nochmal durch und versuche es dann erneut.'; }
+    else            { emoji.textContent='🔁'; score.style.color='var(--accent-red)';  msg.textContent='Lies die Schritte sorgfältig durch und versuche es danach nochmal – du schaffst das!'; }
+  }
+
+  function resetQuiz(quiz) {
+    const state = quizState[quiz];
+    state.current=0; state.score=0; state.answered=false;
+    document.getElementById(quiz+'-quiz-questions').style.display='';
+    document.getElementById(quiz+'-nav').style.display='';
+    document.getElementById(quiz+'-result').classList.remove('show');
+    document.querySelectorAll('#'+quiz+'-quiz-questions .question-block').forEach((b,i)=>{
+      b.classList.toggle('active',i===0);
+      b.querySelectorAll('.option-btn').forEach(btn=>{btn.disabled=false;btn.classList.remove('correct','wrong');});
+      b.querySelectorAll('.feedback-box').forEach(fb=>fb.classList.remove('show'));
+    });
+    document.getElementById(quiz+'-bar').style.width='20%';
+    document.getElementById(quiz+'-progress').textContent='Frage 1 von 5';
+    document.getElementById(quiz+'-next').disabled=true;
+    document.getElementById(quiz+'-next').textContent='Weiter →';
+    document.getElementById(quiz+'-hint').textContent='Wähle eine Antwort';
+  }
+</script>
+</body>
+</html>
